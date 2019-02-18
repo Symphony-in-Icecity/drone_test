@@ -1,2 +1,0 @@
-mode_test_pkg
--DCMAKE_BUILD_TYPE=Debug -DCATKIN_DEVEL_PREFIX=/home/e304/Desktop/drone_pixhawk_test_ws/devel -DCMAKE_INSTALL_PREFIX=/home/e304/Desktop/drone_pixhawk_test_ws/install -G Unix Makefiles

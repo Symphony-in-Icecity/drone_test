@@ -1,8 +1,0 @@
-prefix=/home/e304/Desktop/drone_pixhawk_test_ws/install
-
-Name: mode_test_pkg
-Description: Description of mode_test_pkg
-Version: 0.0.0
-Cflags: 
-Libs: -L/home/e304/Desktop/drone_pixhawk_test_ws/install/lib 
-Requires: 
