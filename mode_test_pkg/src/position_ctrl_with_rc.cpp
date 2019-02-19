@@ -66,7 +66,7 @@ int main(int argc, char **argv)
     geometry_msgs::PoseStamped pose;
     pose.pose.position.x = 0 ;
     pose.pose.position.y = 0 ;
-    pose.pose.position.z = 1 ;
+    pose.pose.position.z = 0 ;
 	// pose.pose.orientation.x = q[3];
 	// pose.pose.orientation.y = q[0];
 	// pose.pose.orientation.z = q[1];
@@ -124,10 +124,10 @@ int main(int argc, char **argv)
 			}
 		}
         
-		float k_roll = float(current_RC_in.channels.at(1)-1500) / 1;
-		float k_pitch =  float(current_RC_in.channels.at(0)-1500) / 1;
-		float k_yaw =  float(current_RC_in.channels.at(3)-1500) / 1;
-		float k_thrust = float(current_RC_in.channels.at(2)-1500) / 1;
+		float k_roll = float(current_RC_in.channels.at(1)-1534.5) / 839;
+		float k_pitch =  float(current_RC_in.channels.at(0)-1491.5) / (-839);
+		float k_yaw =  float(current_RC_in.channels.at(3)-1514) / 840;
+		float k_thrust = float(current_RC_in.channels.at(2)-1514) / 840;
 
 		tfScalar yaw,pitch,roll;
 		yaw = 0 + k_yaw;
@@ -139,12 +139,16 @@ int main(int argc, char **argv)
 		geometry_msgs::PoseStamped pose;
 		pose.pose.position.x = 0 + k_pitch ;
 		pose.pose.position.y = 0 + k_roll ;
-		pose.pose.position.z = 1 + k_thrust ;
+		pose.pose.position.z = 0 + k_thrust ;
 		pose.pose.orientation.x = q[3];
 		pose.pose.orientation.y = q[0];
 		pose.pose.orientation.z = q[1];
 		pose.pose.orientation.w = q[2];
-        local_pos_pub.publish(pose);
+        	local_pos_pub.publish(pose);
+		ROS_INFO("x,y,z");
+		printf("%f,%f,%f\n",pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+		ROS_INFO("pitch,yaw,roll");
+		printf("%f,%f,%f\n",pitch,yaw,roll);
 		// attitude_pub.publish(attitude);
  
         ros::spinOnce();

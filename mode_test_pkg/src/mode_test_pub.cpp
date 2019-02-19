@@ -56,10 +56,7 @@ int main(int argc, char **argv)
         rate.sleep();
     }
 
-	float k_roll = float(current_RC_in.channels.at(1)-1500) / 1;
-	float k_pitch =  float(current_RC_in.channels.at(0)-1500) / 1;
-	float k_yaw =  float(current_RC_in.channels.at(3)-1500) / 1;
-	float k_thrust = float(current_RC_in.channels.at(2)-1500) / 1;
+	
 	
 	// tfScalar yaw,pitch,roll;
 	// yaw = 0;
@@ -82,7 +79,7 @@ int main(int argc, char **argv)
 	// attitude.IGNORE_ROLL_RATE = 1;
 	// attitude.IGNORE_PITCH_RATE = 2;
 	attitude.type_mask = attitude.IGNORE_PITCH_RATE + attitude.IGNORE_YAW_RATE + attitude.IGNORE_ROLL_RATE;
-	attitude.thrust = 0.5 + k_thrust;
+	attitude.thrust = 0.5;
 	// attitude.orientation.
 
  
@@ -94,12 +91,12 @@ int main(int argc, char **argv)
     //     rate.sleep();
     // }
 
-	// for(int i = 100;ros::ok() && i > 0; --i)
-	// {
-	// 	attitude_pub.publish(attitude);
-	// 	ros::spinOnce();
-	// 	rate.sleep();
-	// }
+	 for(int i = 100;ros::ok() && i > 0; --i)
+	 {
+	 	attitude_pub.publish(attitude);
+	 	ros::spinOnce();
+	 	rate.sleep();
+	 }
  
     mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
@@ -133,9 +130,24 @@ int main(int argc, char **argv)
 			}
 		}
         
-	
-        // local_pos_pub.publish(pose);
-		attitude_pub.publish(attitude);
+	float k_roll = float(current_RC_in.channels.at(1)-1500) / 1;
+	float k_pitch =  float(current_RC_in.channels.at(0)-1500) / 1;
+	float k_yaw =  float(current_RC_in.channels.at(3)-1500) / 1;
+	float k_thrust = float(current_RC_in.channels.at(2)-1514) / 840;
+
+	mavros_msgs::AttitudeTarget attitude;
+	// attitude.IGNORE_YAW_RATE = 4;
+	// attitude.IGNORE_ROLL_RATE = 1;
+	// attitude.IGNORE_PITCH_RATE = 2;
+	attitude.type_mask = attitude.IGNORE_PITCH_RATE + attitude.IGNORE_YAW_RATE + attitude.IGNORE_ROLL_RATE;
+	attitude.thrust = 0.5 + k_thrust;
+	if(attitude.thrust > 0.9)
+	{
+	    attitude.thrust = 0.9;
+	}
+
+        //local_pos_pub.publish(pose);
+	attitude_pub.publish(attitude);
  
         ros::spinOnce();
         rate.sleep();
