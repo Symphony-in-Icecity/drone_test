@@ -1,0 +1,6 @@
+<launch>
+
+    <include file="$(find mavros)/launch/px4.launch"/>
+    <node pkg="mode_test_pkg" type="position_ctrl_with_rc" name="position_ctrl_with_rc"/>
+
+</launch>

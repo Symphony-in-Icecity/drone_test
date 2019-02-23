@@ -19,6 +19,7 @@ int armed_flag = 0;
  
 mavros_msgs::State current_state;
 mavros_msgs::RCIn current_RC_in;
+geometry_msgs::PoseStamped current_pose;
 
 void state_cb(const mavros_msgs::State::ConstPtr& msg){
     current_state = *msg;
@@ -28,6 +29,11 @@ void RC_subCallback(const mavros_msgs::RCIn::ConstPtr& RCmsg)
 {
 	current_RC_in = *RCmsg;
 }
+
+void local_pos_subCallback(const geometry_msgs::PoseStamped::ConstPtr& curr_p)
+{
+	current_pose = *curr_p;
+}
  
 int main(int argc, char **argv)
 {
@@ -35,16 +41,20 @@ int main(int argc, char **argv)
     ros::NodeHandle nh;
  
     ros::Subscriber state_sub = nh.subscribe<mavros_msgs::State>
-            ("mavros/state", 10, state_cb);
+            ("mavros/state", 1, state_cb);
     ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
-            ("mavros/setpoint_position/local", 10);
+            ("mavros/setpoint_position/local", 1);
     ros::Publisher attitude_pub = nh.advertise<mavros_msgs::AttitudeTarget>("mavros/setpoint_raw/attitude",10);
 
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
             ("mavros/set_mode");
-	ros::Subscriber RC_sub = nh.subscribe("mavros/rc/in", 10, RC_subCallback);
+	ros::Subscriber RC_sub = nh.subscribe("mavros/rc/in", 1, RC_subCallback);
+
+	ros::Subscriber local_position_sub = nh.subscribe("mavros/local_position/pose", 1, local_pos_subCallback);
+	
+	
 	
  
     //the setpoint publishing rate MUST be faster than 2Hz
@@ -64,8 +74,8 @@ int main(int argc, char **argv)
 	// q.setRPY(yaw,pitch,roll);
 
     geometry_msgs::PoseStamped pose;
-    pose.pose.position.x = 0 ;
-    pose.pose.position.y = 0 ;
+    pose.pose.position.x = 1 ;
+    pose.pose.position.y = 1 ;
     pose.pose.position.z = 0 ;
 	// pose.pose.orientation.x = q[3];
 	// pose.pose.orientation.y = q[0];
@@ -124,10 +134,10 @@ int main(int argc, char **argv)
 			}
 		}
         
-		float k_roll = float(current_RC_in.channels.at(1)-1534.5) / 839;
-		float k_pitch =  float(current_RC_in.channels.at(0)-1491.5) / (-839);
+		float k_roll = float(current_RC_in.channels.at(0)-1513) / 840;
+		float k_pitch =  float(current_RC_in.channels.at(1)-1513) / (-840);
 		float k_yaw =  float(current_RC_in.channels.at(3)-1514) / 840;
-		float k_thrust = float(current_RC_in.channels.at(2)-1514) / 840;
+		float k_thrust = float(current_RC_in.channels.at(2)-1513) / 840;
 
 		tfScalar yaw,pitch,roll;
 		yaw = 0 + k_yaw;
@@ -136,20 +146,26 @@ int main(int argc, char **argv)
 		tf::Quaternion q;
 		q.setRPY(yaw,pitch,roll);
 
-		geometry_msgs::PoseStamped pose;
-		pose.pose.position.x = 0 + k_pitch ;
-		pose.pose.position.y = 0 + k_roll ;
-		pose.pose.position.z = 0 + k_thrust ;
+		// geometry_msgs::PoseStamped pose;
+		pose.pose.position.x = current_pose.pose.position.x + k_pitch ;
+		pose.pose.position.y = current_pose.pose.position.y + k_roll ;
+		pose.pose.position.z = current_pose.pose.position.z + k_thrust ;
 		pose.pose.orientation.x = q[3];
 		pose.pose.orientation.y = q[0];
 		pose.pose.orientation.z = q[1];
 		pose.pose.orientation.w = q[2];
-        	local_pos_pub.publish(pose);
-		ROS_INFO("x,y,z");
-		printf("%f,%f,%f\n",pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
-		ROS_INFO("pitch,yaw,roll");
-		printf("%f,%f,%f\n",pitch,yaw,roll);
-		// attitude_pub.publish(attitude);
+        local_pos_pub.publish(pose);
+		// ROS_INFO("x,y,z");
+		// printf("%f,%f,%f \n",pose.pose.position.x,pose.pose.position.y,pose.pose.position.z);
+		// ROS_INFO("pitch,yaw,roll");
+		// printf("%f,%f,%f \n",pitch,yaw,roll);
+		// ROS_INFO("current: x,y,z");
+		// printf("%f,%f,%f \n",current_pose.pose.position.x,current_pose.pose.position.y,current_pose.pose.position.z);
+		// ROS_INFO("pos error: x,y,z");
+		// printf("%f,%f,%f \n",(pose.pose.position.x-current_pose.pose.position.x),(pose.pose.position.y-current_pose.pose.position.y),(pose.pose.position.z-current_pose.pose.position.z));
+		// // attitude_pub.publish(attitude);
+		// ROS_INFO("bias: pitch, roll, thrust");
+		// printf("%f,%f,%f \n",k_pitch,k_roll,k_thrust);
  
         ros::spinOnce();
         rate.sleep();
