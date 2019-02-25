@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(mode_test_pkg)
+project(opencvtest)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
@@ -8,11 +8,12 @@ project(mode_test_pkg)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  cv_bridge
+  image_transport
   roscpp
-  rospy
+  sensor_msgs
   std_msgs
-  # message_generation
-  opencvtest
 )
 
 ## System dependencies are found with CMake's conventions
@@ -49,16 +50,10 @@ find_package(catkin REQUIRED COMPONENTS
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#   FILES
-#   img_pro_info.msg
-#   contours.msg
-# )
-# add_message_files(
-#   FILES
-#   img_pro_info.msg
-#   contours.msg
-# )
+add_message_files(FILES
+  img_pro_info.msg
+  contours.msg
+)
 
 ## Generate services in the 'srv' folder
 # add_service_files(
@@ -75,10 +70,9 @@ find_package(catkin REQUIRED COMPONENTS
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs
-# )
+generate_messages(DEPENDENCIES
+  std_msgs
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -110,11 +104,12 @@ find_package(catkin REQUIRED COMPONENTS
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  # message_runtime
-  # INCLUDE_DIRS include
-  # LIBRARIES mode_test_pkg
-  # CATKIN_DEPENDS roscpp rospy std_msgs
-  # DEPENDS system_lib
+  CATKIN_DEPENDS
+  message_runtime
+#  INCLUDE_DIRS include
+#  LIBRARIES opencvtest
+#  CATKIN_DEPENDS cv_bridge image_transport roscpp sensor_msgs std_msgs
+#  DEPENDS system_lib
 )
 
 ###########
@@ -124,14 +119,13 @@ catkin_package(
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  include ${catkin_INCLUDE_DIRS}
 # include
   ${catkin_INCLUDE_DIRS}
 )
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/mode_test_pkg.cpp
+#   src/${PROJECT_NAME}/opencvtest.cpp
 # )
 
 ## Add cmake target dependencies of the library
@@ -142,7 +136,7 @@ include_directories(
 ## Declare a C++ executable
 ## With catkin_make all packages are built within a single CMake context
 ## The recommended prefix ensures that target names across packages don't collide
-# add_executable(${PROJECT_NAME}_node src/mode_test_pkg_node.cpp)
+# add_executable(${PROJECT_NAME}_node src/opencvtest_node.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -199,27 +193,15 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_mode_test_pkg.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_opencvtest.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
 
 ## Add folders to be run by python nosetests
 # catkin_add_nosetests(test)
+find_package(OpenCV)
+include_directories(${OpenCV_INCLUDE_DIRS})
+add_executable(opencv_testcam src/opencv_testcam.cpp)
+target_link_libraries(opencv_testcam ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
-
-add_executable(mode_test_pub
-  src/mode_test_pub.cpp
-)
-add_dependencies(mode_test_pub ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(mode_test_pub
-  ${catkin_LIBRARIES}
-)
-
-add_executable(position_ctrl_with_rc
-  src/position_ctrl_with_rc.cpp
-)
-add_dependencies(position_ctrl_with_rc ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-target_link_libraries(position_ctrl_with_rc
-  ${catkin_LIBRARIES}
-)
