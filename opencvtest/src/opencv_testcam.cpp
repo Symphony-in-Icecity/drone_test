@@ -205,7 +205,7 @@ public:
         for (size_t i = 0; i< contours.size(); i++)
         {
             //将轮廓做多边形逼近
-            approxPolyDP(contours[i], contours_ploy[i], 13, true);//第三个变量表征逼近的程度
+            approxPolyDP(contours[i], contours_ploy[i],15, true);//第三个变量表征逼近的程度
             //printf("%s\n",typeid(contours[0]).name());//类型
             //cout<<"类型为"<<typeid(contours[0]).name()<<endl;
 
@@ -227,8 +227,9 @@ public:
         int out_flag = 0;
         //用于判断是否需要标记中心点
         int circle_flag = 0;
-        //通过相似度查找符合条件的轮廓
+        //是否有可以成功发布的对象
         int pub_flag = 0;
+        //通过相似度查找符合条件的轮廓
         //cout<<"第一种相似判断，结果两个轮廓之间的相似度为：  "<<matchShapes(contours_ploy[0],contours_ploy[0],CV_CONTOURS_MATCH_I1, 0)<<endl;
         //cout<<"第二种相似判断，结果两个轮廓之间的相似度为：  "<<matchShapes(contours_ploy[0],contours_ploy[1],CV_CONTOURS_MATCH_I2, 0)<<endl;
         //cout<<"第三种相似判断，结果两个轮廓之间的相似度为：  "<<matchShapes(contours_ploy[0],contours_ploy[1],CV_CONTOURS_MATCH_I3, 0)<<endl;
@@ -248,7 +249,8 @@ public:
         {
             //出界标志位置0 
             out_flag = 0; 
-            if(contours_ploy[i].size() == 4  && cv::contourArea(contours_ploy[i]) > 1000 && contours[i].size() > 70)
+            if(contours_ploy[i].size() == 4  && cv::contourArea(contours_ploy[i]) > 500 && contours[i].size() > 30)
+            //if(contours_ploy[i].size() == 4)
             {
                 // for(int m = 0;m < i; m++)
                 // {
@@ -264,7 +266,7 @@ public:
                 //std::cout<<"矩形角点 = "<<contours_ploy[i].size()<<endl;
                 for(int j = 0;j < contours_ploy[i].size();j++)
                 {
-                    if( (contours_ploy[i][j].x < 50 || contours_ploy[i][j].x > 600)  || (contours_ploy[i][j].y < 40 || contours_ploy[i][j].y > 440) )
+                    if( (contours_ploy[i][j].x < 30 || contours_ploy[i][j].x > 610)  || (contours_ploy[i][j].y < 20 || contours_ploy[i][j].y > 460) )
                     {
                         out_flag = 1; 
                     }
@@ -290,18 +292,18 @@ public:
                 info_pub.x_pos = P_center.x;
                 info_pub.y_pos = P_center.y;
                 //在图像上显示
-                if(out_flag == 0 && (theta < 15 || theta > 165))
+                if(out_flag == 0 && (theta < 20 || theta > 160))
                 {
-                    drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
-                    drawContours(img,contours_ploy,i,Scalar(0,255,0),3,8,hierarchy);
-                    cv::circle(imageContours, P_center, 5, Scalar(255),2);
+                    //drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
+                    //drawContours(img,contours_ploy,i,Scalar(0,255,0),3,8,hierarchy);
+                    //cv::circle(imageContours, P_center, 5, Scalar(255),2);
                     cv::circle(img, P_center, 5, Scalar(0,255,0),2);
                 }
-                if(out_flag == 1 && (theta < 15 || theta > 165))
+                if(out_flag == 1 && (theta < 20 || theta > 160))
                 {
-                    drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
-                    drawContours(img,contours_ploy,i,Scalar(255,0,0),3,8,hierarchy);
-                    cv::circle(imageContours, P_center, 5, Scalar(255),2);
+                    //drawContours(imageContours,contours_ploy,i,Scalar(255),1,8,hierarchy);
+                    //drawContours(img,contours_ploy,i,Scalar(255,0,0),3,8,hierarchy);
+                    //cv::circle(imageContours, P_center, 5, Scalar(255),2);
                     cv::circle(img, P_center, 5, Scalar(255,0,0),2);
                 }
                 //轮廓排序
@@ -336,7 +338,7 @@ public:
                 //cout<<"width = "<<info_pub.width<<"   height = "<<info_pub.height <<endl;
                 // Output modified video stream
                 contours_pub_.publish(info_pub);
-                int pub_flag = 1;
+                pub_flag = 1;
                 break;
                 //contours[i]代表的是第i个轮廓，contours[i].size()代表的是第i个轮廓上所有的像素点数
                 //绘制出点
@@ -358,7 +360,7 @@ public:
                 //drawContours(poly_image,poly,i,Scalar(255),1,8,hierarchy);
             } 
         }
-        if(pub_flag == 0)
+        if(pub_flag == 0 )
         {
             info_pub.out_flag = 1;
             info_pub.x_pos = 0;
@@ -420,7 +422,7 @@ public:
         //imshow("gray Image",img_gray);
         //imshow("hsv Image",img_hsv);
         //imshow("red Image",img_red);//hsv提取到的红色区域
-        imshow("red Image_gauss",img_red_median);//高斯滤波后的红色区域
+        //imshow("red Image_gauss",img_red_median);//高斯滤波后的红色区域
         //imshow("binary Image",img_binary);
         //imshow("poly Image",poly_image); //凸包的图像
         //imshow("draw_rotateRect", draw_rotateRect); 
@@ -456,10 +458,10 @@ int alpha_slider_line_max = 100;
 int alpha_slider_max = 50;
 // namedWindow("Linear Offset_add", 1);
 // namedWindow("Linear Offset_sub", 1);
-namedWindow("Linear Offset_line", 1);
+//namedWindow("Linear Offset_line", 1);
 // createTrackbar( "Trackbar", "Linear Offset_add", &alpha_slider_add, alpha_slider_max, on_trackbar_add );
 // createTrackbar( "Trackbar", "Linear Offset_sub", &alpha_slider_sub, alpha_slider_max, on_trackbar_sub );
-//createTrackbar( "Trackbar", "Linear Offset_line", &alpha_slider_line, alpha_slider_line_max, on_trackbar_line );
+// createTrackbar( "Trackbar", "Linear Offset_line", &alpha_slider_line, alpha_slider_line_max, on_trackbar_line );
 ros::spin();
 return 0;
 }

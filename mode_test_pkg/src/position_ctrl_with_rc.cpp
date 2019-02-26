@@ -91,7 +91,7 @@ int main(int argc, char **argv)
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
-	mavros_msgs::SetMode offb_set_mode;
+    mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
  
     mavros_msgs::CommandBool arm_cmd;
@@ -115,7 +115,7 @@ int main(int argc, char **argv)
 			ROS_INFO("pixhawk has been connected via USB!\n");
 			//2.switching to offboard mode and try to arm;
 			ros::Time last_request = ros::Time::now();
-			while(!(offb_flag * armed_flag)){
+			while(!(offb_flag * armed_flag) && ros::ok()){
 				if( current_state.mode != "OFFBOARD" &&
 					(ros::Time::now() - last_request > ros::Duration(5.0))){
 					if( set_mode_client.call(offb_set_mode) &&
@@ -136,13 +136,16 @@ int main(int argc, char **argv)
 						last_request = ros::Time::now();
 					}
 				}
+				local_pos_pub.publish(pose);
+				ros::spinOnce();
+				rate.sleep();
 			}	
 			//3.transfer to hover_mode
 			status = hover_mode;
 			ROS_INFO("switching to hover mode...");
 		}
 		else if(status == hover_mode){
-			if(abs(current_pose.pose.position.z - 2) < 0.2){ // camera
+			if(2 - current_pose.pose.position.z > 0.2){ // camera
 				// float k_roll = float(current_RC_in.channels.at(0)-1513) / (-840);  //invert with -840
 				// float k_pitch =  float(current_RC_in.channels.at(1)-1513) / (-840);
 				// float k_yaw =  float(current_RC_in.channels.at(3)-1514) / 840;
@@ -152,7 +155,9 @@ int main(int argc, char **argv)
 				// pose.pose.position.x = current_pose.pose.position.x + k_pitch ;
 				// pose.pose.position.y = current_pose.pose.position.y + k_roll ;
 				// pose.pose.position.z = current_pose.pose.position.z + k_thrust ;
+				printf("error: %f \n",2 - current_pose.pose.position.z);
 			 	local_pos_pub.publish(pose);
+				printf("pose: %f \n",pose.pose.position.z);
 			}
 			else{
 				status = mission_mode;
@@ -163,16 +168,21 @@ int main(int argc, char **argv)
 			if(!camera_data.out_flag){
 				delta_pixels[0] = camera_data.x_pos - picture_centerX;
 				delta_pixels[1] = camera_data.y_pos - picture_centerZ;
-				pose.pose.position.x = current_pose.pose.position.x +  -kp * delta_pixels[0];
-				pose.pose.position.z = current_pose.pose.position.z +  kp * delta_pixels[1];
+				pose.pose.position.y = current_pose.pose.position.y +  (-kp * delta_pixels[0]);
+				pose.pose.position.z = current_pose.pose.position.z +  (-kp * delta_pixels[1]);
+				printf("out_flag:  %d \n",camera_data.out_flag);
 			}
 			else{
 				ROS_INFO("box is out of sight!");
 			}
+			
+			local_pos_pub.publish(pose);
 		}
 		else{
 			;
 		}
+		ros::spinOnce();
+		rate.sleep();
 	}
 	
 	// // tfScalar yaw,pitch,roll;
