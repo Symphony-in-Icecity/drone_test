@@ -223,3 +223,11 @@ add_dependencies(position_ctrl_with_rc ${${PROJECT_NAME}_EXPORTED_TARGETS} ${cat
 target_link_libraries(position_ctrl_with_rc
   ${catkin_LIBRARIES}
 )
+
+add_executable(drone_state
+  src/drone_state.cpp
+)
+add_dependencies(drone_state ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+target_link_libraries(drone_state
+  ${catkin_LIBRARIES}
+)
